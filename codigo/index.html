@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Logs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom right, #dff1e2, #a9c4d9); /* Fondo degradado */
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    h1 {
+      color: #333;
+      margin: 20px 0;
+    }
+    table {
+      width: 80%;
+      border-collapse: collapse;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin: 20px 0;
+      background-color: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px 15px;
+      text-align: left;
+    }
+    th {
+      background-color: #a9c4d9;
+      color: #333;
+      font-weight: 500;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+    tbody tr td:first-child {
+      font-weight: bold;
+    }
+    @media (max-width: 768px) {
+      table {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Customer Logs</h1>
+  <table id="logsTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Hora</th>
+        <th>Descripción</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Los datos se insertarán aquí -->
+    </tbody>
+  </table>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch('http://localhost:3000/getLogs')
+        .then(response => response.json())
+        .then(data => {
+          const tableBody = document.querySelector('#logsTable tbody');
+          data.forEach(log => {
+            // Filtra los registros que tienen log.descripcion vacío
+            if (log.descripcion) {
+              const row = document.createElement('tr');
+              const idCell = document.createElement('td');
+              const horaCell = document.createElement('td');
+              const descripcionCell = document.createElement('td');
+
+              idCell.textContent = log.id;
+              const date = new Date(log.hora);
+              const formattedDate = date.toLocaleDateString();
+              const formattedTime = date.toLocaleTimeString();
+              horaCell.textContent = ${formattedDate} ${formattedTime};
+              descripcionCell.textContent = log.descripcion;
+
+              row.appendChild(idCell);
+              row.appendChild(horaCell);
+              row.appendChild(descripcionCell);
+              tableBody.appendChild(row);
+            }
+          });
+        })
+        .catch(error => console.error('Error al obtener los registros:', error));
+    });
+  </script>
+</body>
+</html>
