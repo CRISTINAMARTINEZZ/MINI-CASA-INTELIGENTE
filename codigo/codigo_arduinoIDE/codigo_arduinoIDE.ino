@@ -30,7 +30,7 @@ byte rowPins[ROWS] = {A1, A2, A3, A4};
 byte colPins[COLS] = {A5, 9, 12, 13};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
-const float FIRE_TEMP_THRESHOLD = 28.0; // Umbral de temperatura para detectar incendio
+const float FIRE_TEMP_THRESHOLD = 25.0; // Umbral de temperatura para detectar incendio
 
 // Contraseña esperada
 String password = "1234";
@@ -67,16 +67,16 @@ void loop() {
     return;
   }
 
-  // // Mostrar los valores leídos en el monitor serial cada 4 segundos
-  // if (currentTime - lastPrintTime >= printInterval) {
-  //   lastPrintTime = currentTime;
-  //   Serial.print("Humedad: ");
-  //   Serial.print(humidity);
-  //   Serial.print(" %\t");
-  //   Serial.print("Temperatura: ");
-  //   Serial.print(temperature);
-  //   Serial.println(" *C");
-  // }
+// Mostrar los valores leídos en el monitor serial cada 4 segundos
+  if (currentTime - lastPrintTime >= printInterval) {
+    lastPrintTime = currentTime;
+    Serial.print("Humedad: ");
+   Serial.print(humidity);
+   Serial.print(" %\t");
+   Serial.print("Temperatura: ");
+   Serial.print(temperature);
+   Serial.println(" *C");
+ }
 
   // Comprobar si la temperatura excede el umbral de incendio
   if (temperature > FIRE_TEMP_THRESHOLD) {
@@ -91,7 +91,7 @@ void loop() {
   // Leer comandos Bluetooth
   if (BTSerial.available()) { // Verificar si hay datos disponibles desde el Bluetooth
     char command = BTSerial.read(); // Leer el comando recibido
-    Serial.println(command); // Mostrar el comando para depuración
+    //Serial.println(command); // Mostrar el comando para depuración
 
     if (command == '1') { // Si el comando es '1'
       digitalWrite(ledPin1, HIGH); // Prender el primer LED
@@ -117,6 +117,12 @@ void loop() {
     } else if (command == '7') { // Si el comando es '7'
       closeGate(); // Cerrar la tranquera
       sendEventToServer("Tranquera cerrada");
+    } else if (command == '8') { // Si el comando es '6'
+      openDoor(); // Abrir la tranquera
+      sendEventToServer("Puerta abierta");
+    } else if (command == '9') { // Si el comando es '7'
+      closeDoor(); // Cerrar la tranquera
+      sendEventToServer("Puerta cerrada");
     }
   }
 
