@@ -4,14 +4,18 @@ const { SerialPort } = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline');
 const mysql = require('mysql');
 
+const cors = require('cors');
 const app = express();
+app.use(cors());
+
 const appPort = 3000; // Cambiado a appPort para evitar conflicto
 
 // Configuración de la conexión MySQL
 const connection = mysql.createConnection({
   host: 'localhost',
-  user: 'tu_usuario',
-  password: 'tu_contraseña',
+  user: 'root',
+  password: '',
+  port: 3307,
   multipleStatements: true // Permite ejecutar múltiples declaraciones SQL en una sola consulta
 });
 
@@ -25,8 +29,8 @@ connection.connect(err => {
 
   // Crear la base de datos y la tabla si no existen
   const createDbAndTableQuery = `
-    CREATE DATABASE IF NOT EXISTS tu_base_de_datos;
-    USE tu_base_de_datos;
+    CREATE DATABASE IF NOT EXISTS casa_inteligente;
+    USE casa_inteligente;
     CREATE TABLE IF NOT EXISTS customer_logs (
       id INT AUTO_INCREMENT PRIMARY KEY,
       hora DATETIME NOT NULL,
@@ -36,15 +40,15 @@ connection.connect(err => {
 
   connection.query(createDbAndTableQuery, (error, results, fields) => {
     if (error) {
-      console.error('Error al crear la base de datos o la tabla: ' + error.message);
+      console.error('Error al crear la base de datos o la tabla: ' + error.messae);
       return;
     }
     console.log('Base de datos y tabla aseguradas.');
   });
 });
 
-// Configuración del puerto serial (ajusta según tu configuración)
-const portName = 'COM3'; // Ejemplo para Windows, ajusta según tu sistema operativo
+
+const portName = 'COM3';
 
 const serialPort = new SerialPort({
   path: portName,
@@ -58,7 +62,7 @@ parser.on('data', data => {
   const currentTime = new Date().toISOString().slice(0, 19).replace('T', ' '); // Hora actual en formato SQL
 
   // Insertar datos en la base de datos
-  const insertQuery = `INSERT INTO customer_logs (hora, descripcion) VALUES (?, ?)`;
+  const insertQuery = 'INSERT INTO customer_logs (hora, descripcion) VALUES (?, ?)';
   const values = [currentTime, receivedData];
 
   connection.query(insertQuery, values, (error, results, fields) => {
@@ -76,7 +80,7 @@ app.post('/insertLog', (req, res) => {
   const { hora, descripcion } = req.body;
 
   // Insertar datos en la base de datos a través de la ruta POST
-  const insertQuery = `INSERT INTO customer_logs (hora, descripcion) VALUES (?, ?)`;
+  const insertQuery = 'INSERT INTO customer_logs (hora, descripcion) VALUES (?, ?)';
   const values = [hora, descripcion];
 
   connection.query(insertQuery, values, (error, results, fields) => {
@@ -89,7 +93,20 @@ app.post('/insertLog', (req, res) => {
   });
 });
 
+// Ruta GET para obtener todos los registros de la tabla customer_logs
+app.get('/getLogs', (req, res) => {
+  const selectQuery = 'SELECT * FROM customer_logs';
+
+  connection.query(selectQuery, (error, results, fields) => {
+    if (error) {
+      console.error('Error al obtener los registros de la base de datos: ' + error.message);
+      res.status(500).send('Error al obtener los registros de la base de datos');
+      return;
+    }
+    res.json(results);
+  });
+});
+
 app.listen(appPort, () => {
   console.log(`Servidor Node.js escuchando en http://localhost:${appPort}`);
 });
-
